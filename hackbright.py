@@ -26,7 +26,7 @@ def get_student_by_github(github):
         WHERE github = :github
         """
     db_cursor = db.session.execute(QUERY, {'github': github})
-    row = db_cursor.fetchone()
+    row = db_cursor.fetchone() 
     print "Student: %s %s\nGithub account: %s" % (row[0], row[1], row[2])
 
 
@@ -38,9 +38,10 @@ def make_new_student(first_name, last_name, github):
     """
     QUERY = """INSERT INTO students VALUES (:first_name, :last_name, :github)"""
     db_cursor = db.session.execute(QUERY, {'first_name': first_name, 'last_name': last_name, 'github': github})
-    db.session.commit()
 
     print "Successfully added student: %s %s" % (first_name, last_name)
+    db.session.commit()
+
 
 def get_project_by_title(title):
     """Given a project title, print information about the project."""
@@ -59,6 +60,16 @@ def get_project_by_title(title):
                Project max grade: %s" % (results[0],results[1],results[2])
     except:
         print "No such project exists."
+
+
+def add_project(title, description, max_grade):
+    """Given a project title, description and max grade, print confirmation."""
+    pass
+
+
+def get_grade_by_github(github):
+    """Given a student's github name, get all projects and grades."""
+    pass
 
 
 def get_grade_by_github_title(github, title):
@@ -85,9 +96,9 @@ def assign_grade(github, title, grade):
         QUERY = """INSERT INTO grades VALUES (:github, :title, :grade)"""
 
         db_cursor = db.session.execute(QUERY, {'github': github, 'title': title, 'grade': grade,})
-        db.session.commit()
 
-        print "Successfully added grade for student %s, project %s: %d" %(github, title, grade)
+        print "Successfully added grade for student %s, project %s: %s" %(github, title, grade)
+        db.session.commit()
 
     except:
         print "Invalid github or project title."
@@ -115,6 +126,18 @@ def handle_input():
             first_name, last_name, github = args   # unpack!
             make_new_student(first_name, last_name, github)
 
+        elif command == "get_project":
+            title = args[0]
+            get_project_by_title(title)
+
+        elif command == "get_grade":
+            github, title = args
+            get_grade_by_github_title(github, title)
+
+        elif command == "assign_grade":
+            github, title, grade = args
+            assign_grade(github, title, grade)
+
         else:
             if command != "quit":
                 print "Invalid Entry. Try again."
@@ -124,6 +147,6 @@ if __name__ == "__main__":
     app = Flask(__name__)
     connect_to_db(app)
 
-    # handle_input()
+    handle_input()
 
     db.session.close()
