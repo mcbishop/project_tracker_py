@@ -62,14 +62,33 @@ def get_project_by_title(title):
         print "No such project exists."
 
 
-def add_project(title, description, max_grade):
-    """Given a project title, description and max grade, print confirmation."""
-    pass
-
+def add_project(title, max_grade, description):
+    """Given a project title, description and max grade, add to project table and print confirmation."""
+    
+    try:
+        description = " ".join(description)
+        QUERY = """INSERT INTO projects VALUES (:title, :max_grade, :description)"""
+        db_cursor = db.session.execute(QUERY, {'title': title, 'max_grade': max_grade, 'description':description})    
+        db.session.commit()
+    
+        print "Project %s successfully added to database." % (title)
+    
+    except:
+        print "Invalid project title or max grade value."
 
 def get_grade_by_github(github):
     """Given a student's github name, get all projects and grades."""
-    pass
+    try:
+        QUERY = """SELECT project_title, grade from grades WHERE student_github = :github"""
+
+        db_cursor = db.session.execute(QUERY, {'github':github,})
+        results = db_cursor.fetchall()
+        db.session.commit()
+
+        for item in results:
+            print "Project name: %s Project Grade: %s" %(item[0], item[1])
+    except:
+        print "No such github exists."
 
 
 def get_grade_by_github_title(github, title):
@@ -113,34 +132,47 @@ def handle_input():
     command = None
 
     while command != "quit":
-        input_string = raw_input("HBA Database> ")
-        tokens = input_string.split()
-        command = tokens[0]
-        args = tokens[1:]
+        try:
+            input_string = raw_input("HBA Database> ")
+            tokens = input_string.split()
+            command = tokens[0]
+            args = tokens[1:]
 
-        if command == "student":
-            github = args[0]
-            get_student_by_github(github)
+            if command == "student":
+                github = args[0]
+                get_student_by_github(github)
 
-        elif command == "new_student":
-            first_name, last_name, github = args   # unpack!
-            make_new_student(first_name, last_name, github)
+            elif command == "new_student":
+                first_name, last_name, github = args   # unpack!
+                make_new_student(first_name, last_name, github)
 
-        elif command == "get_project":
-            title = args[0]
-            get_project_by_title(title)
+            elif command == "get_project":
+                title = args[0]
+                get_project_by_title(title)
 
-        elif command == "get_grade":
-            github, title = args
-            get_grade_by_github_title(github, title)
+            elif command == "get_grade":
+                github, title = args
+                get_grade_by_github_title(github, title)
 
-        elif command == "assign_grade":
-            github, title, grade = args
-            assign_grade(github, title, grade)
+            elif command == "assign_grade":
+                github, title, grade = args
+                assign_grade(github, title, grade)
 
-        else:
-            if command != "quit":
-                print "Invalid Entry. Try again."
+            elif command == "get_all_grades":
+                github = args[0]
+                get_grade_by_github(github)
+
+            elif command == "add_project":
+                title = args[0] 
+                max_grade = args[1] 
+                description = args[2:]
+                add_project(title, max_grade, description)
+            else:
+                if command != "quit":
+                    print "Invalid Entry. Try again."
+
+        except ValueError:
+            print "Incorrect number of arguments. Please retry."
 
 
 if __name__ == "__main__":
